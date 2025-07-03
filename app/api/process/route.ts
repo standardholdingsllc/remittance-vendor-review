@@ -62,7 +62,8 @@ function isNonRemittanceService(summary: string): boolean {
     'PROGRESSIVE LEAS',
     'PAYPAL',
     'Chime',
-    'PCA*SKY DANCER CASINO'
+    'PCA*SKY DANCER CASINO',
+    'CASH APP'
   ]
   
   const summaryUpper = summary.toUpperCase()
@@ -89,7 +90,6 @@ function extractVendorName(summary: string): string {
     'TapTap Send',
     'BOSS MONEY',
     'BOSSREVOLUTIONMONEYXFE',
-    'CASH APP',
     'PANGEA MONEY TRANSFER',
     'WorldRemit',
     'WU DIGITAL USA',
@@ -115,7 +115,6 @@ function extractVendorName(summary: string): string {
       if (vendor.includes('Felix')) return 'Felix Pago'
       if (vendor.includes('Taptap') || vendor.includes('TapTap')) return 'TapTap Send'
       if (vendor.includes('BOSS')) return 'Boss Money'
-      if (vendor.includes('CASH APP')) return 'Cash App'
       if (vendor.includes('PANGEA')) return 'Pangea'
       if (vendor.includes('WorldRemit')) return 'WorldRemit'
       if (vendor.includes('WU DIGITAL')) return 'Western Union'
