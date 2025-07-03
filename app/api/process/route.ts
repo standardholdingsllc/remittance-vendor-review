@@ -50,8 +50,35 @@ function parseAmount(amount: string): number {
   return parseFloat(amount.replace(/[$,]/g, '')) || 0
 }
 
+function isNonRemittanceService(summary: string): boolean {
+  // List of non-remittance service patterns to exclude completely
+  const nonRemittancePatterns = [
+    'APPLE COM BILL',
+    'APPLE CASH',
+    'Disney Plus',
+    'SpotifyUS',
+    'METRO BY T MOBIL',
+    'SIE PLAYSTATIONN',
+    'PROGRESSIVE LEAS',
+    'PAYPAL',
+    'Chime',
+    'PCA*SKY DANCER CASINO'
+  ]
+  
+  const summaryUpper = summary.toUpperCase()
+  
+  return nonRemittancePatterns.some(pattern => 
+    summaryUpper.includes(pattern.toUpperCase())
+  )
+}
+
 function extractVendorName(summary: string): string {
-  // Extract vendor name from summary field
+  // First check if it's a non-remittance service (should be filtered out)
+  if (isNonRemittanceService(summary)) {
+    return null // Will be filtered out
+  }
+  
+  // Known remittance providers
   const vendors = [
     'RIA Financial Services',
     'Ria Money Transfer',
@@ -67,7 +94,15 @@ function extractVendorName(summary: string): string {
     'WorldRemit',
     'WU DIGITAL USA',
     'XOOM',
-    'ASTRA*MyBambu'
+    'ASTRA*MyBambu',
+    'MONEYGRAM US ONLINE',
+    'MoneyGram',
+    'VIAMERICAS',
+    'SERVICIO UNITELLER',
+    'UNITELLER',
+    'MAXITRANSFERS',
+    'OMN*MONEY TRANSF',
+    'PNM*Tornado Bus'
   ]
   
   const summaryUpper = summary.toUpperCase()
@@ -86,11 +121,18 @@ function extractVendorName(summary: string): string {
       if (vendor.includes('WU DIGITAL')) return 'Western Union'
       if (vendor.includes('XOOM')) return 'Xoom'
       if (vendor.includes('ASTRA') || vendor.includes('MyBambu')) return 'MyBambu'
+      if (vendor.includes('MONEYGRAM') || vendor.includes('MoneyGram')) return 'MoneyGram'
+      if (vendor.includes('VIAMERICAS')) return 'Viamericas'
+      if (vendor.includes('UNITELLER')) return 'Uniteller'
+      if (vendor.includes('MAXITRANSFERS')) return 'MaxiTransfers'
+      if (vendor.includes('OMN*MONEY TRANSF')) return 'Omni Money Transfer'
+      if (vendor.includes('PNM*Tornado Bus')) return 'Tornado Bus'
       return vendor
     }
   }
   
-  return 'Other'
+  // If we reach here, it's an unknown vendor (potential new remittance provider)
+  return 'Unknown Vendor'
 }
 
 function categorizeVendors(transactions: Transaction[]): {
@@ -106,6 +148,8 @@ function categorizeVendors(transactions: Transaction[]): {
     if (transaction.direction !== 'Debit') return // Only process debit transactions
     
     const vendor = extractVendorName(transaction.summary)
+    if (vendor === null) return // Skip non-remittance services completely
+    
     const amount = parseAmount(transaction.amount)
     const interchange = parseAmount(transaction.interchange)
     const hasInterchange = transaction.interchange && transaction.interchange.trim() !== ''
@@ -274,14 +318,26 @@ export async function POST(request: NextRequest) {
     const problemBase64 = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${problemBuffer.toString('base64')}`
     const summaryBase64 = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${summaryBuffer.toString('base64')}`
 
+    // Generate current date for zip filename
+    const currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+    
     return NextResponse.json({
       success: true,
       downloadLinks: [approvedBase64, problemBase64, summaryBase64],
+      fileNames: [
+        'approved-vendors-customers.xlsx',
+        'problem-vendors-customers.xlsx', 
+        'vendor-summary.xlsx'
+      ],
+      zipFileName: `vendor-review-${currentDate}.zip`,
       stats: {
         totalTransactions: transactions.length,
         approvedCustomers: approved.length,
         problemCustomers: problem.length,
-        totalVendors: vendorSummary.length
+        totalVendors: vendorSummary.length,
+        filteredOutNonRemittance: transactions.filter(t => 
+          t.direction === 'Debit' && extractVendorName(t.summary) === null
+        ).length
       }
     })
 

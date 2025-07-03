@@ -84,6 +84,12 @@ The system recognizes these remittance providers:
 - Western Union (WU Digital)
 - Xoom
 - MyBambu (Astra)
+- MoneyGram
+- Viamericas
+- Uniteller
+- MaxiTransfers
+- Omni Money Transfer
+- Tornado Bus
 
 ## Tech Stack
 

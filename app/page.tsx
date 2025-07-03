@@ -2,6 +2,13 @@
 
 import { useState } from 'react'
 
+// Client-side zip functionality - using a CDN approach
+declare global {
+  interface Window {
+    JSZip: any;
+  }
+}
+
 interface Transaction {
   createdAt: string
   id: string
@@ -28,6 +35,9 @@ export default function HomePage() {
   const [file, setFile] = useState<File | null>(null)
   const [processing, setProcessing] = useState(false)
   const [downloadLinks, setDownloadLinks] = useState<string[]>([])
+  const [fileNames, setFileNames] = useState<string[]>([])
+  const [zipFileName, setZipFileName] = useState<string>('')
+  const [stats, setStats] = useState<any>(null)
   const [message, setMessage] = useState('')
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,6 +45,52 @@ export default function HomePage() {
       setFile(e.target.files[0])
       setMessage('')
       setDownloadLinks([])
+      setFileNames([])
+      setZipFileName('')
+      setStats(null)
+    }
+  }
+
+  const downloadAsZip = async () => {
+    if (!window.JSZip) {
+      setMessage('JSZip library not loaded. Please refresh the page and try again.')
+      return
+    }
+
+    try {
+      const zip = new window.JSZip()
+
+      // Add each file to the zip
+      for (let i = 0; i < downloadLinks.length; i++) {
+        const link = downloadLinks[i]
+        const fileName = fileNames[i]
+        
+        // Convert base64 to binary data
+        const base64Data = link.split(',')[1]
+        const binaryData = atob(base64Data)
+        const bytes = new Uint8Array(binaryData.length)
+        for (let j = 0; j < binaryData.length; j++) {
+          bytes[j] = binaryData.charCodeAt(j)
+        }
+        
+        zip.file(fileName, bytes)
+      }
+
+      // Generate the zip file
+      const zipContent = await zip.generateAsync({ type: 'blob' })
+      
+      // Create download link
+      const url = URL.createObjectURL(zipContent)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = zipFileName
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error creating zip:', error)
+      setMessage('Error creating zip file. Please try downloading files individually.')
     }
   }
 
@@ -64,6 +120,9 @@ export default function HomePage() {
       
       if (result.success) {
         setDownloadLinks(result.downloadLinks)
+        setFileNames(result.fileNames)
+        setZipFileName(result.zipFileName)
+        setStats(result.stats)
         setMessage('Processing complete! Download your files below.')
       } else {
         setMessage(result.error || 'An error occurred while processing')
@@ -130,15 +189,35 @@ export default function HomePage() {
           )}
 
           {downloadLinks.length > 0 && (
-            <div className="mt-6 space-y-2">
+            <div className="mt-6 space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Download Reports:</h3>
-              {downloadLinks.map((link, index) => {
-                const fileNames = [
-                  'approved-vendors-customers.xlsx',
-                  'problem-vendors-customers.xlsx',
-                  'vendor-summary.xlsx'
-                ]
-                return (
+              
+              {/* Stats display */}
+              {stats && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-2">Processing Summary:</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div>Total Transactions: {stats.totalTransactions}</div>
+                    <div>Approved Customers: {stats.approvedCustomers}</div>
+                    <div>Problem Customers: {stats.problemCustomers}</div>
+                    <div>Total Vendors: {stats.totalVendors}</div>
+                    <div>Non-Remittance Filtered: {stats.filteredOutNonRemittance}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Zip download button */}
+              <button
+                onClick={downloadAsZip}
+                className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                📦 Download All Files as ZIP ({zipFileName})
+              </button>
+
+              {/* Individual file downloads */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-700">Or download individually:</h4>
+                {downloadLinks.map((link, index) => (
                   <a
                     key={index}
                     href={link}
@@ -147,8 +226,8 @@ export default function HomePage() {
                   >
                     Download {fileNames[index]}
                   </a>
-                )
-              })}
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -160,13 +239,13 @@ export default function HomePage() {
               <div className="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">1</div>
               <p>Upload your weekly transaction CSV file (same format as Transactions.csv)</p>
             </div>
-                         <div className="flex items-start space-x-3">
+            <div className="flex items-start space-x-3">
                <div className="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">2</div>
-               <p>The system processes and categorizes vendors by interchange rates (&gt;0.3% = approved, &lt;0.3% = problem). Only transactions with interchange data are used for rate calculations - empty interchange values are ignored.</p>
+               <p>The system automatically filters out non-remittance services (Apple Pay, Disney, etc.) and recognizes 17+ major remittance providers (RIA, Remitly, MoneyGram, Viamericas, etc.). Vendors are categorized by interchange rates (&gt;0.3% = approved, ≤0.3% = problem).</p>
              </div>
             <div className="flex items-start space-x-3">
               <div className="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">3</div>
-              <p>Download 3 Excel files: Approved vendors, Problem vendors, and General vendor summary</p>
+              <p>Download all 3 Excel files as a ZIP package or individually: Approved vendors, Problem vendors, and General vendor summary</p>
             </div>
           </div>
         </div>
