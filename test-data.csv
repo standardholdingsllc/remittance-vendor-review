@@ -1,0 +1,9 @@
+createdAt,id,type,amount,direction,balance,interchange,summary,customerId,accountId,counterpartyName,counterpartyCustomer,counterpartyAccount,imad,omad,paymentId,recurringPaymentId,grossInterchange,institutionId
+"2025-06-28T07:09:50.421Z","305787410","cardTransaction","$1,202.99","Debit","$436.47","$14.88","Felix Pago, San Francisco, CA, US  |  **9765","2342288","3070507","","","","","","","","$21.25",""
+"2025-06-28T07:09:50.236Z","305787409","cardTransaction","$444.98","Debit","$151.25","$5.59","Felix Pago, San Francisco, CA, US  |  **1887","2821399","3833217","","","","","","","","$7.99",""
+"2025-06-28T07:07:40.557Z","305786588","cardTransaction","$14.99","Debit","$579.98","$0.32","RIA Financial Services, 818-6747076, KS, US  |  **3218","2754322","3720089","","","","","","","","$0.46",""
+"2025-06-28T07:07:39.816Z","305786581","cardTransaction","$1,003.90","Debit","$646.92","$12.44","RIA Financial Services, 818-6747076, KS, US  |  **7008","2290636","2992846","","","","","","","","$17.77",""
+"2025-06-28T05:22:27.216Z","305764890","cardTransaction","$1,002.99","Debit","$1,397.32","$0.43","RMTLY* N040E, REMITLY.COM, WA, US  |  **1534","1976868","2485934","","","","","","","","$0.75",""
+"2025-06-28T05:22:26.653Z","305764885","cardTransaction","$92.49","Debit","$18.52","$0.27","RMTLY* R8E0B, REMITLY.COM, WA, US  |  **5384","2737194","3691736","","","","","","","","$0.42",""
+"2025-06-28T03:12:44.156Z","305745695","cardTransaction","$200.00","Debit","$455.07","$2.59","Taptap Send UK ltd, 833-9160670, DE, US  |  **9455","2421643","3190604","","","","","","","","$3.70",""
+"2025-06-28T03:10:34.496Z","305745222","cardTransaction","$261.00","Debit","$2,000.16","$3.34","Taptap Send UK ltd, 833-9160670, DE, US  |  **9360","2770970","3749061","","","","","","","","$4.77","" 
