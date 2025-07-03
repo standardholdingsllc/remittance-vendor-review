@@ -228,10 +228,38 @@ function categorizeVendors(transactions: Transaction[]): {
   // Only categorize customers who have at least some transactions with interchange data
   const customersWithInterchange = allCustomerVendors.filter(t => t.transactionsWithInterchange > 0)
   
-  // Categorize by interchange rate (0.3% threshold)
-  const approved = customersWithInterchange.filter(t => t.interchangeRate > 0.3)
-  const problem = customersWithInterchange.filter(t => t.interchangeRate <= 0.3)
+  // Create vendor summary array
   const vendorSummary = Array.from(vendorSummaryMap.values())
+  
+  // Define vendors that are ALWAYS problem vendors regardless of interchange rate
+  const alwaysProblemVendors = [
+    'Giromex',
+    'Pangea', 
+    'Remitly',
+    'SendWave',
+    'WorldRemit',
+    'Western Union',
+    'Xoom'
+  ]
+  
+  // First, determine which vendors are approved/problem based on their OVERALL typical interchange rate
+  const approvedVendors = new Set<string>()
+  const problemVendors = new Set<string>()
+  
+  // Classify vendors based on their typical (overall average) interchange rate
+  vendorSummary.forEach(vendor => {
+    if (alwaysProblemVendors.includes(vendor.vendor)) {
+      problemVendors.add(vendor.vendor)
+    } else if (vendor.avgInterchangeRate > 0.3) {
+      approvedVendors.add(vendor.vendor)
+    } else {
+      problemVendors.add(vendor.vendor)
+    }
+  })
+  
+  // Now classify ALL customers based on their vendor's overall classification
+  const approved = customersWithInterchange.filter(t => approvedVendors.has(t.vendor))
+  const problem = customersWithInterchange.filter(t => problemVendors.has(t.vendor))
 
   return { approved, problem, vendorSummary }
 }

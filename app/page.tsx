@@ -241,7 +241,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-start space-x-3">
                <div className="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">2</div>
-               <p>The system automatically filters out non-remittance services (Apple Pay, Disney, etc.) and recognizes 17+ major remittance providers (RIA, Remitly, MoneyGram, Viamericas, etc.). Vendors are categorized by interchange rates (&gt;0.3% = approved, ≤0.3% = problem).</p>
+               <p>The system automatically filters out non-remittance services (Apple Pay, Disney, etc.) and recognizes 17+ major remittance providers. Each vendor is classified based on their typical overall interchange rate (&gt;0.3% = approved, ≤0.3% = problem). All customers using that vendor are then classified the same way. Certain vendors (Giromex, Pangea, Remitly, SendWave, WorldRemit, Western Union, Xoom) are always classified as problem vendors regardless of rates.</p>
              </div>
             <div className="flex items-start space-x-3">
               <div className="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">3</div>
